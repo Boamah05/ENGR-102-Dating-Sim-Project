@@ -23,8 +23,6 @@ def switchMute():
 
     return pygame.Rect(7, 479, 20, 20)
 
-
-
 # INTERACTIVE RELATED CODE
 def blink(value):
     if value:
@@ -32,13 +30,11 @@ def blink(value):
     else:
         return ""
 
-
 # MUSIC RELATED CODE
 
 # Our music || If ya want to add, feel feel to below. However make sure music is in "dating_music" file
 music = ["Classicals.de - Dvorak - Twilight Way - Poetic Tone Pictures, Op. 85, No. 1.mp3",
-         "copyrightable_musicHahaha.mp3"]
-
+         "Twinkle Twinkle Little Star.mp3"]
 # Menu Music
 def menu_music():
 
@@ -61,7 +57,6 @@ def normal_music():
     # Reassign
     global ACTIVE_MUSIC
     ACTIVE_MUSIC = music[1]
-
 
 # The ACTUAL GAME
 def main():
