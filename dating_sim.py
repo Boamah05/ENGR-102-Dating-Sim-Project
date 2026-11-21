@@ -6,23 +6,23 @@ def backgroud_img(val):
         choose_Claude,choose_Chat = pygame.Rect(300, 100, 100, 100), pygame.Rect(100, 100, 100, 100)
 
         screen.blit(choice_menu, (0,0))
-        pygame.draw.rect(screen, (200, 50, 50), choose_Chat)
-        pygame.draw.rect(screen, (20, 200, 50), choose_Claude)
+        pygame.draw.rect(screen, (200, 50, 50), choose_Chat, border_radius = 13)
+        pygame.draw.rect(screen, (20, 200, 50), choose_Claude, border_radius = 13)
     else:
         choose_Chat, choose_Claude = pygame.Rect(1000, 1000, 1, 1), pygame.Rect(1000, 1000, 1, 1)
-        screen.blit(claudePlaceholder, (0,0))
+        screen.blit(Standard_Menu, (0,0))
 
-        # if val == True: # ChatGpt Route
-        #     screen.blit(chat_logo, (x, y))
-        # elif val == False: # Claude Route
-        #     screen.blit(claude_logo, (x, y))
+        if val == True: # ChatGpt Route
+            screen.blit(chat_logo, (8, 10))
+        elif val == False: # Claude Route
+            screen.blit(claude_logo, (8, 10))
 
     return choose_Chat, choose_Claude
 
 def switchMute(val):
     # Bring images from file
-    unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png"))
-    mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png"))
+    unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png")).convert_alpha()
+    mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png")).convert_alpha()
 
     if val != None:
         # Unmute    
@@ -71,7 +71,6 @@ def normal_music():
     # Reassign
     global ACTIVE_MUSIC
     ACTIVE_MUSIC = music[1]
-
 
 # The ACTUAL GAME
 def main():
@@ -204,8 +203,9 @@ if __name__ == "__main__":
 
     # Background (placeholder)
     choice_menu = pygame.image.load(os.path.join("dating_images", "Choice_Menu.png"))
-
-    claudePlaceholder = pygame.image.load(os.path.join("dating_images", "Claude_Default_Placeholder.png"))
+    Standard_Menu = pygame.image.load(os.path.join("dating_images", "Standard_Menu.png"))
+    chat_logo = pygame.image.load(os.path.join("dating_images", "Chat_logo.png")).convert_alpha()
+    claude_logo = pygame.image.load(os.path.join("dating_images", "Claude_logo.png")).convert_alpha()
 
     main() # Call the game
 
