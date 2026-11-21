@@ -1,22 +1,38 @@
 import pygame, pygame.freetype, random, sys, os
 
 # VISUAL BG RELATED CODE
-def backgroud_img():
-    screen.blit(claudePlaceholder, (0,0))
+def backgroud_img(val):
+    if val == None:
+        choose_Claude,choose_Chat = pygame.Rect(300, 100, 100, 100), pygame.Rect(100, 100, 100, 100)
 
-def switchMute():
+        screen.blit(choice_menu, (0,0))
+        pygame.draw.rect(screen, (200, 50, 50), choose_Chat)
+        pygame.draw.rect(screen, (20, 200, 50), choose_Claude)
+    else:
+        choose_Chat, choose_Claude = pygame.Rect(1000, 1000, 1, 1), pygame.Rect(1000, 1000, 1, 1)
+        screen.blit(claudePlaceholder, (0,0))
+
+        # if val == True: # ChatGpt Route
+        #     screen.blit(chat_logo, (x, y))
+        # elif val == False: # Claude Route
+        #     screen.blit(claude_logo, (x, y))
+
+    return choose_Chat, choose_Claude
+
+def switchMute(val):
     # Bring images from file
     unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png"))
     mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png"))
 
-    # Unmute
-    if pygame.mixer.music.get_busy():
-        screen.blit(unmute_image, (9, 480))
-    # Mute~
-    elif not pygame.mixer.music.get_busy():
-        screen.blit(mute_image, (9, 480))
+    if val != None:
+        # Unmute    
+        if pygame.mixer.music.get_busy():
+            screen.blit(unmute_image, (9, 480))
+        # Mute
+        elif not pygame.mixer.music.get_busy():
+            screen.blit(mute_image, (9, 480))
 
-    return pygame.Rect(7, 479, 20, 20)
+    return pygame.Rect(7, 479, 20, 20) if val != None else pygame.Rect(1000,1000, 1, 1) # Spawn button
 
 # INTERACTIVE RELATED CODE
 def blink(value):
@@ -44,6 +60,7 @@ def menu_music():
     # Reassign
     global ACTIVE_MUSIC
     ACTIVE_MUSIC = music[0]
+
 # Default music
 def normal_music():
     pygame.mixer.music.fadeout(500)
@@ -58,20 +75,24 @@ def normal_music():
 
 # The ACTUAL GAME
 def main():
+    # Setting up game
+    pygame.display.set_caption("AI-shiteru!!")
+
+    choice = None # GPT - True // Claude - False
 
     # Text Box Stuff
+    pygame.key.set_repeat(400, 35)
+
     active = False
     text_box = pygame.Rect(55, 455, 447, 30)
     user_ip = ''
     stored_user_ip = ''
-    pygame.key.set_repeat(400, 35)
+    
     blink_val = False
     last_blink = pygame.time.get_ticks()
 
     # Music Related Stuff    
     pygame.mixer.music.set_volume(0.3)
-
-    pygame.display.set_caption("AI-shiteru!!")
 
     # Calling Music
     menu_music()
@@ -81,20 +102,20 @@ def main():
 
         current_time = pygame.time.get_ticks()
         # Bg
-        backgroud_img()
+        choose_Chat, choose_Claude = backgroud_img(choice)
         # Mute button (invisible)
-        mute_button = switchMute()
+        mute_button = switchMute(choice)
 
         # Button collision
         # Position of mouse
         mouse_pos = pygame.mouse.get_pos()
 
-        button = [mute_button]
+        button = [mute_button, choose_Chat, choose_Claude]
         is_hovering = any(btn.collidepoint(mouse_pos) for btn in button)
         
         if is_hovering:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-        elif text_box.collidepoint(mouse_pos):
+        elif text_box.collidepoint(mouse_pos) and choice != None:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_IBEAM)
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -105,7 +126,12 @@ def main():
                 return
 
             # Button Clickin'
-            if event.type == pygame.MOUSEBUTTONDOWN:   
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if choice == None:
+                    if choose_Chat.collidepoint(event.pos):
+                        choice = True
+                    elif choose_Claude.collidepoint(event.pos):
+                        choice = False   
                 if event.button == 1:
                     # Muting
                     if mute_button.collidepoint(event.pos):
@@ -134,7 +160,7 @@ def main():
                         current_music = menu_music()
 
                     # Text Box 
-                    if active:
+                    if active and choice != None:
                         txt_width = font.get_rect(user_ip).width
 
                         if event.key == pygame.K_BACKSPACE:
@@ -177,6 +203,8 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((542, 512))
 
     # Background (placeholder)
+    choice_menu = pygame.image.load(os.path.join("dating_images", "Choice_Menu.png"))
+
     claudePlaceholder = pygame.image.load(os.path.join("dating_images", "Claude_Default_Placeholder.png"))
 
     main() # Call the game
