@@ -1,13 +1,8 @@
-import pygame
-import pygame.font
-import random # For the random interactive events stuff
-import sys
-import os
+import pygame, pygame.freetype, random, sys, os
 
 # VISUAL BG RELATED CODE
 def backgroud_img():
     screen.blit(claudePlaceholder, (0,0))
-
 
 def switchMute():
     # Bring images from file
@@ -17,7 +12,7 @@ def switchMute():
     # Unmute
     if pygame.mixer.music.get_busy():
         screen.blit(unmute_image, (9, 480))
-    # Mute
+    # Mute~
     elif not pygame.mixer.music.get_busy():
         screen.blit(mute_image, (9, 480))
 
@@ -30,11 +25,13 @@ def blink(value):
     else:
         return ""
 
+
 # MUSIC RELATED CODE
 
 # Our music || If ya want to add, feel feel to below. However make sure music is in "dating_music" file
 music = ["Classicals.de - Dvorak - Twilight Way - Poetic Tone Pictures, Op. 85, No. 1.mp3",
          "Twinkle Twinkle Little Star.mp3"]
+
 # Menu Music
 def menu_music():
 
@@ -58,12 +55,13 @@ def normal_music():
     global ACTIVE_MUSIC
     ACTIVE_MUSIC = music[1]
 
+
 # The ACTUAL GAME
 def main():
 
     # Text Box Stuff
     active = False
-    text_box = pygame.Rect(55, 455, 300, 35)
+    text_box = pygame.Rect(55, 455, 447, 30)
     user_ip = ''
     stored_user_ip = ''
     pygame.key.set_repeat(400, 35)
@@ -84,7 +82,6 @@ def main():
         current_time = pygame.time.get_ticks()
         # Bg
         backgroud_img()
-
         # Mute button (invisible)
         mute_button = switchMute()
 
@@ -136,15 +133,17 @@ def main():
                     if event.key == pygame.K_UP:
                         current_music = menu_music()
 
-                    # Text Box
+                    # Text Box 
                     if active:
+                        txt_width = font.get_rect(user_ip).width
+
                         if event.key == pygame.K_BACKSPACE:
                             user_ip = user_ip[:-1]
                         elif event.key == pygame.K_RETURN:
                             stored_user_ip = user_ip
                             user_ip = ""
                             print("output:",stored_user_ip)
-                        elif len(user_ip) < 70 and (event.unicode.isalpha() or pygame.K_SPACE): 
+                        elif txt_width <= text_box.width and (event.unicode.isalpha() or pygame.K_SPACE): 
                             user_ip += event.unicode
 
         # Blinking Cursor Logic
@@ -156,9 +155,10 @@ def main():
 
         cursor = blink(blink_val) if active else ""
 
+
         # "Drawing" printed stuff
-        surface = font.render(user_ip + cursor, True, "black")
-        screen.blit(surface, (text_box.x + 5, text_box.y + 5))
+        surface, txt_rect = font.render(user_ip + cursor)
+        screen.blit(surface, (text_box.x + 5, text_box.y + 7))
 
         pygame.display.update()
         clock.tick(60)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
 
     # Set Font to Times New Roman
-    font = pygame.font.SysFont("timesnewroman", 12)
+    font = pygame.freetype.SysFont("timesnewroman", 12)
 
     # Ze screen
     screen = pygame.display.set_mode((542, 512))
