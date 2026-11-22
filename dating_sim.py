@@ -164,12 +164,16 @@ def main():
 
                         if event.key == pygame.K_BACKSPACE:
                             user_ip = user_ip[:-1]
+                            
                         elif event.key == pygame.K_RETURN:
                             stored_user_ip = user_ip
                             user_ip = ""
                             print("output:",stored_user_ip)
-                        elif txt_width <= text_box.width and (event.unicode.isalpha() or pygame.K_SPACE): 
-                            user_ip += event.unicode
+
+                        elif txt_width <= text_box.width:
+                            char = event.unicode
+                            if char and char.isprintable():
+                                user_ip += event.unicode
 
         # Blinking Cursor Logic
         blink_time = pygame.time.get_ticks()
@@ -182,7 +186,7 @@ def main():
 
         # "Drawing" printed stuff
         font.origin = True
-        font.render_to(screen, (text_box.x + 5, text_box.y + 18), user_ip + cursor, "black")
+        font.render_to(screen, (text_box.x + 5, text_box.y + 17), user_ip + cursor, "black")
 
         pygame.display.update()
         clock.tick(60)
