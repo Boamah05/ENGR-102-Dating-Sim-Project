@@ -2,12 +2,49 @@ import pygame, pygame.freetype, random, sys, os
 
 # VISUAL BG RELATED CODE
 def backgroud_img(val):
+    
     if val == None:
-        choose_Claude,choose_Chat = pygame.Rect(300, 100, 100, 100), pygame.Rect(100, 100, 100, 100)
+        choose_Chat,choose_Claude = pygame.Rect(50, 200, 200, 250), pygame.Rect(300, 200, 200, 250)
+        screen.fill("white")
+        
+        if choose_Chat.collidepoint(mouse_pos):
+            color_chat = "azure3"
+        else:
+            color_chat = "white"
+        if choose_Claude.collidepoint(mouse_pos):
+            color_claude = "azure3"
+        else: color_claude = "white"
 
-        screen.blit(choice_menu, (0,0))
-        pygame.draw.rect(screen, (200, 50, 50), choose_Chat, border_radius = 13)
-        pygame.draw.rect(screen, (20, 200, 50), choose_Claude, border_radius = 13)
+        # Chat Choice Box
+        pygame.draw.rect(screen, color_chat, choose_Chat, border_radius = 13)
+        pygame.draw.rect(screen, "black", choose_Chat, border_radius = 13, width= 2)
+
+        # Claude Choice Box
+        pygame.draw.rect(screen, color_claude, choose_Claude, border_radius = 13)
+        pygame.draw.rect(screen, "black", choose_Claude, border_radius = 13, width= 2)
+
+        # Boxes for or and welcome message for centering
+        or_block = pygame.Rect(250, 295, 50, 50)
+        big_text_block = pygame.Rect(53, 55, 442, 100)
+        
+        whims_box = whimsical_font.get_rect("or")
+        whims_box.center = or_block.center
+        whimsical_font.render_to(screen, whims_box, "or", "black")
+
+        whims_box = whimsical_font.get_rect(whimsical_tuple[1])
+        whims_box.center = choose_Chat.center
+        whimsical_font.render_to(screen, whims_box, whimsical_tuple[1], "black")
+
+        whims_box = whimsical_font.get_rect(whimsical_tuple[2])
+        whims_box.center = choose_Claude.center
+        whimsical_font.render_to(screen, whims_box, whimsical_tuple[2], "black")
+
+        if whimsical_tuple[3] == "ravie":
+            whimsical_font.size = 20
+        whims_box = whimsical_font.get_rect(whimsical_tuple[0])
+        whims_box.center = big_text_block.center
+        whimsical_font.render_to(screen, whims_box, whimsical_tuple[0], "black")
+
     else:
         choose_Chat, choose_Claude = pygame.Rect(1000, 1000, 1, 1), pygame.Rect(1000, 1000, 1, 1)
         screen.blit(Standard_Menu, (0,0))
@@ -16,14 +53,37 @@ def backgroud_img(val):
             screen.blit(chat_logo, (8, 10))
         elif val == False: # Claude Route
             screen.blit(claude_logo, (8, 10))
-
+    
     return choose_Chat, choose_Claude
+
+# More "fun" menu
+def dynamic_menu():
+    with open(os.path.join("dating_text","menu.txt"), "r") as Mfile:
+        welcomeMessage = [i.strip() for i in Mfile.readlines()]
+
+    # Hard code list of potential printed statements
+    menu_message = welcomeMessage[:6]
+    menu_rarity = [45, 25, 10, 10, 5, 5]
+    chat_menu = welcomeMessage[7:9]
+    chat_rarity = [90, 10]
+    claude_menu = welcomeMessage[10:12]
+    claude_rarity = [90, 10]
+    menu_font = welcomeMessage[13:]
+    font_rarity = [35, 20, 20, 10, 5, 5, 5]
+
+    # Use random to pick
+    menu_pick = random.choices(menu_message, weights = menu_rarity, k = 1)[0]
+    chat_pick = random.choices(chat_menu, weights = chat_rarity, k = 1)[0]
+    claude_pick = random.choices(claude_menu, weights = claude_rarity, k = 1)[0]
+    font_pick = random.choices(menu_font, weights = font_rarity, k = 1)[0]
+
+    return menu_pick, chat_pick, claude_pick, font_pick
 
 def switchMute(val):
     # Bring images from file
     unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png")).convert_alpha()
     mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png")).convert_alpha()
-
+    
     if val != None:
         # Unmute    
         if pygame.mixer.music.get_busy():
@@ -99,6 +159,10 @@ def main():
     # Running the game
     while True:
 
+        # Position of mouse
+        global mouse_pos
+        mouse_pos = pygame.mouse.get_pos()
+
         current_time = pygame.time.get_ticks()
         # Bg
         choose_Chat, choose_Claude = backgroud_img(choice)
@@ -106,8 +170,7 @@ def main():
         mute_button = switchMute(choice)
 
         # Button collision
-        # Position of mouse
-        mouse_pos = pygame.mouse.get_pos()
+
 
         button = [mute_button, choose_Chat, choose_Claude]
         is_hovering = any(btn.collidepoint(mouse_pos) for btn in button)
@@ -209,6 +272,9 @@ if __name__ == "__main__":
     Standard_Menu = pygame.image.load(os.path.join("dating_images", "Standard_Menu.png"))
     chat_logo = pygame.image.load(os.path.join("dating_images", "Chat_logo.png")).convert_alpha()
     claude_logo = pygame.image.load(os.path.join("dating_images", "Claude_logo.png")).convert_alpha()
+
+    whimsical_tuple = dynamic_menu()
+    whimsical_font = pygame.freetype.SysFont(whimsical_tuple[3], 30)
 
     main() # Call the game
 
