@@ -24,9 +24,11 @@ def backgroud_img(val):
         pygame.draw.rect(screen, "black", choose_Claude, border_radius = 13, width= 2)
 
         # Boxes for or and welcome message for centering
-        or_block = pygame.Rect(250, 295, 50, 50)
+        or_block = pygame.Rect(250, 300, 50, 50)
         big_text_block = pygame.Rect(53, 55, 442, 100)
-        
+
+        font.origin = True
+
         whims_box = whimsical_font.get_rect("or")
         whims_box.center = or_block.center
         whimsical_font.render_to(screen, whims_box, "or", "black")
@@ -41,9 +43,14 @@ def backgroud_img(val):
 
         if whimsical_tuple[3] == "ravie":
             whimsical_font.size = 20
+        elif whimsical_tuple[3] == "jokerman":
+            whimsical_font.size = 35
+        elif whimsical_tuple[3] == "rage":
+            whimsical_font.size = 40
+
         whims_box = whimsical_font.get_rect(whimsical_tuple[0])
         whims_box.center = big_text_block.center
-        whimsical_font.render_to(screen, whims_box, whimsical_tuple[0], "black")
+        whimsical_font.render_to(screen, whims_box, whimsical_tuple[0] + blink(blink_val), "black")
 
     else:
         choose_Chat, choose_Claude = pygame.Rect(1000, 1000, 1, 1), pygame.Rect(1000, 1000, 1, 1)
@@ -146,7 +153,8 @@ def main():
     text_box = pygame.Rect(55, 455, 447, 30)
     user_ip = ''
     stored_user_ip = ''
-    
+
+    global blink_val
     blink_val = False
     last_blink = pygame.time.get_ticks()
 
@@ -275,6 +283,7 @@ if __name__ == "__main__":
 
     whimsical_tuple = dynamic_menu()
     whimsical_font = pygame.freetype.SysFont(whimsical_tuple[3], 30)
+    print(whimsical_tuple[3])
 
     main() # Call the game
 
