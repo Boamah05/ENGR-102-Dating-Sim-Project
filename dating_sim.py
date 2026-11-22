@@ -131,7 +131,7 @@ def main():
                         choice = True
                     elif choose_Claude.collidepoint(event.pos):
                         choice = False   
-                if event.button == 1:
+                if event.button == 1 and choice != None:
                     # Muting
                     if mute_button.collidepoint(event.pos):
                         if pygame.mixer.music.get_busy():
@@ -173,17 +173,16 @@ def main():
 
         # Blinking Cursor Logic
         blink_time = pygame.time.get_ticks()
-
+        
         if blink_time - last_blink >= 500:
             blink_val = not blink_val
             last_blink = blink_time
 
         cursor = blink(blink_val) if active else ""
 
-
         # "Drawing" printed stuff
-        surface, txt_rect = font.render(user_ip + cursor)
-        screen.blit(surface, (text_box.x + 5, text_box.y + 7))
+        font.origin = True
+        font.render_to(screen, (text_box.x + 5, text_box.y + 18), user_ip + cursor, "black")
 
         pygame.display.update()
         clock.tick(60)
@@ -196,7 +195,7 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
 
     # Set Font to Times New Roman
-    font = pygame.freetype.SysFont("timesnewroman", 12)
+    font = pygame.freetype.SysFont("timesnewroman", 13)
 
     # Ze screen
     screen = pygame.display.set_mode((542, 512))
