@@ -283,7 +283,6 @@ if __name__ == "__main__":
 
     whimsical_tuple = dynamic_menu()
     whimsical_font = pygame.freetype.SysFont(whimsical_tuple[3], 30)
-    print(whimsical_tuple[3])
 
     main() # Call the game
 
