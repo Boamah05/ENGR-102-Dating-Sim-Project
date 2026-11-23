@@ -86,6 +86,18 @@ def dynamic_menu():
 
     return menu_pick, chat_pick, claude_pick, font_pick
 
+def loveOverlay(dialogue, active, time):
+    loveImage = pygame.image.load(os.path.join("dating_images","hearts_overlay.png"))
+
+    percent = time/1500
+
+    if active:
+        loveImage.set_alpha(50 * min(percent, 1.0))
+    elif not active:
+        loveImage.set_alpha(50 - (50 * min(percent, 1.0)))
+
+    screen.blit(loveImage, (0,0))
+
 def switchMute(val):
     # Bring images from file
     unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png")).convert_alpha()
@@ -146,6 +158,13 @@ def main():
 
     choice = None # GPT - True // Claude - False
 
+    # Love Overlay variables
+    loveTrigger = None # Determines if love overlay is on
+    loveTriggerList = ["love"] # To make this easier on coders, trigger words only gonna be from chat/claude
+    initialLoveTime = 0
+    finalLoveTime = 0
+    loveTime = 0
+
     # Text Box Stuff
     pygame.key.set_repeat(400, 35)
 
@@ -200,8 +219,10 @@ def main():
                 if choice == None:
                     if choose_Chat.collidepoint(event.pos):
                         choice = True
+                        dialogue = chatLines
                     elif choose_Claude.collidepoint(event.pos):
-                        choice = False   
+                        choice = False  
+                        dialogue = claudeLines
                 if event.button == 1 and choice != None:
                     # Muting
                     if mute_button.collidepoint(event.pos):
@@ -259,6 +280,25 @@ def main():
         font.origin = True
         font.render_to(screen, (text_box.x + 5, text_box.y + 17), user_ip + cursor, "black")
 
+        # Fading Love OverLay (Definitely needs to be cleaned up)
+        if loveTrigger == None:
+            if stored_user_ip in loveTriggerList:
+                loveTrigger = True
+                initialLoveTime = current_time
+        else:
+            if loveTrigger == True and stored_user_ip == "stop":
+                loveTrigger = False
+                initialLoveTime = current_time
+            elif loveTrigger == True:
+                finalLoveTime = current_time
+            elif loveTrigger == False and loveTime/1500 > 1:
+                loveTrigger = None
+            elif loveTrigger == False:
+                finalLoveTime = current_time
+            loveTime = finalLoveTime - initialLoveTime
+
+            loveOverlay(stored_user_ip, loveTrigger, loveTime)
+
         pygame.display.update()
         clock.tick(60)
 
@@ -283,6 +323,13 @@ if __name__ == "__main__":
 
     whimsical_tuple = dynamic_menu()
     whimsical_font = pygame.freetype.SysFont(whimsical_tuple[3], 30)
+
+    # Take lines from dialouge files
+    with open(os.path.join("dating_text", "chatgpt_dialogue.txt"), "r") as chatFile, open(
+        os.path.join("dating_text", "claude_dialogue.txt"), "r") as claudeFile:
+
+        chatLines = [i.strip() for i in chatFile.readlines()]
+        claudeLines = [i.strip() for i in claudeFile.readlines()]
 
     main() # Call the game
 
