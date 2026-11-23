@@ -44,7 +44,7 @@ def backgroud_img(val):
         if whimsical_tuple[3] == "ravie":
             whimsical_font.size = 20
         elif whimsical_tuple[3] == "jokerman":
-            whimsical_font.size = 35
+            whimsical_font.size = 32
         elif whimsical_tuple[3] == "rage":
             whimsical_font.size = 40
 
@@ -89,7 +89,7 @@ def dynamic_menu():
 def loveOverlay(dialogue, active, time):
     loveImage = pygame.image.load(os.path.join("dating_images","hearts_overlay.png"))
 
-    percent = time/1500
+    percent = time/2500
 
     if active:
         loveImage.set_alpha(50 * min(percent, 1.0))
@@ -125,7 +125,9 @@ def blink(value):
 
 # Our music || If ya want to add, feel feel to below. However make sure music is in "dating_music" file
 music = ["Classicals.de - Dvorak - Twilight Way - Poetic Tone Pictures, Op. 85, No. 1.mp3",
-         "Twinkle Twinkle Little Star.mp3"]
+         "BlankCuzThisGunnaBeMusicForOurLilAIs", 
+         "LoveBGMusic.mp3",
+         "BadBGMusic.mp3"]
 
 # Menu Music
 def menu_music():
@@ -136,20 +138,20 @@ def menu_music():
     pygame.mixer.music.load(os.path.join("dating_music", music[0]))
     pygame.mixer.music.play(-1, fade_ms=500)
 
-    # Reassign
-    global ACTIVE_MUSIC
-    ACTIVE_MUSIC = music[0]
-
 # Default music
 def normal_music():
     pygame.mixer.music.fadeout(500)
     pygame.mixer.music.unload()
     pygame.mixer.music.load(os.path.join("dating_music", music[1]))
+    pygame.mixer.music.set_volume(0.05)
     pygame.mixer.music.play(-1, fade_ms= 500)
 
-    # Reassign
-    global ACTIVE_MUSIC
-    ACTIVE_MUSIC = music[1]
+# Love Overlay Music
+def love_music():
+    pygame.mixer.music.fadeout(500)
+    pygame.mixer.music.unload()
+    pygame.mixer.music.load(os.path.join("dating_music", music[2]))
+    pygame.mixer.music.play(-1, fade_ms= 500)
 
 # The ACTUAL GAME
 def main():
@@ -217,12 +219,25 @@ def main():
             # Button Clickin'
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if choice == None:
+
                     if choose_Chat.collidepoint(event.pos):
                         choice = True
-                        dialogue = chatLines
+                        
+                        # BG Music
+                        music[1] = "ChatBGMusic.mp3"
+                        normal_music()
+
+                        dialogue = chatLines # Assigning Lines
+
                     elif choose_Claude.collidepoint(event.pos):
                         choice = False  
-                        dialogue = claudeLines
+
+                        # BG Music
+                        music[1] = "ClaudeBGMusic.mp3" 
+                        normal_music()
+
+                        dialogue = claudeLines # Assigning Lines
+
                 if event.button == 1 and choice != None:
                     # Muting
                     if mute_button.collidepoint(event.pos):
@@ -235,7 +250,7 @@ def main():
                 if event.button == 1:
                     # Typing
                     if text_box.collidepoint(event.pos):
-                        active = True
+                        active = True                        
                     else:
                         active = False
 
@@ -243,12 +258,6 @@ def main():
             if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return
-
-                    # MUSIC
-                    if event.key == pygame.K_DOWN:
-                        current_music = normal_music() 
-                    if event.key == pygame.K_UP:
-                        current_music = menu_music()
 
                     # Text Box 
                     if active and choice != None:
@@ -285,14 +294,17 @@ def main():
             if stored_user_ip in loveTriggerList:
                 loveTrigger = True
                 initialLoveTime = current_time
+                love_music()
+
         else:
             if loveTrigger == True and stored_user_ip == "stop":
                 loveTrigger = False
                 initialLoveTime = current_time
             elif loveTrigger == True:
                 finalLoveTime = current_time
-            elif loveTrigger == False and loveTime/1500 > 1:
+            elif loveTrigger == False and loveTime/2500 > 1:
                 loveTrigger = None
+                normal_music()
             elif loveTrigger == False:
                 finalLoveTime = current_time
             loveTime = finalLoveTime - initialLoveTime
@@ -315,8 +327,7 @@ if __name__ == "__main__":
     # Ze screen
     screen = pygame.display.set_mode((542, 512))
 
-    # Background (placeholder)
-    choice_menu = pygame.image.load(os.path.join("dating_images", "Choice_Menu.png"))
+    # Background
     Standard_Menu = pygame.image.load(os.path.join("dating_images", "Standard_Menu.png"))
     chat_logo = pygame.image.load(os.path.join("dating_images", "Chat_logo.png")).convert_alpha()
     claude_logo = pygame.image.load(os.path.join("dating_images", "Claude_logo.png")).convert_alpha()
