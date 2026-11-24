@@ -2,6 +2,10 @@ import pygame, pygame.freetype, random, sys, os
 
 # VISUAL BG RELATED CODE
 def backgroud_img(val):
+
+    ''' All lines in conditional val == None is the menu screen 
+        All lines in else continuously draws the Background where the value of val determines if 
+        ChatGPT's or Claude's objects get drawn.'''
     
     if val == None:
         choose_Chat,choose_Claude = pygame.Rect(50, 200, 200, 250), pygame.Rect(300, 200, 200, 250)
@@ -29,6 +33,7 @@ def backgroud_img(val):
 
         font.origin = True
 
+        # Manually rendering text to screen for each box (Should Clean up if possible)
         whims_box = whimsical_font.get_rect("or")
         whims_box.center = or_block.center
         whimsical_font.render_to(screen, whims_box, "or", "black")
@@ -63,8 +68,11 @@ def backgroud_img(val):
     
     return choose_Chat, choose_Claude
 
-# More "fun" menu
 def dynamic_menu():
+
+    ''' Uses the random module to randomize the text in the menu (Only the variables)
+        Returned data from this function is passed into function background_img()'''
+
     with open(os.path.join("dating_text","menu.txt"), "r") as Mfile:
         welcomeMessage = [i.strip() for i in Mfile.readlines()]
 
@@ -87,6 +95,10 @@ def dynamic_menu():
     return menu_pick, chat_pick, claude_pick, font_pick
 
 def loveOverlay(dialogue, active, time):
+
+    ''' Whenever the function is called, fade the hearts filter for 2.5 seconds.
+        Incrementally fades it every loop to ensure the program isn't "slowed" down.'''
+
     loveImage = pygame.image.load(os.path.join("dating_images","hearts_overlay.png"))
 
     percent = time/2500
@@ -99,6 +111,10 @@ def loveOverlay(dialogue, active, time):
     screen.blit(loveImage, (0,0))
 
 def switchMute(val):
+
+    ''' Based on the current status of the music player, this functions draws the object 
+        corresponding (speaker with X for paused || speaker with sound for unpaused) '''
+
     # Bring images from file
     unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png")).convert_alpha()
     mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png")).convert_alpha()
@@ -115,6 +131,10 @@ def switchMute(val):
 
 # INTERACTIVE RELATED CODE
 def blink(value):
+
+    ''' This function gives the text the "typing effect" and is controlled by a variable
+        in the main loop '''
+
     if value:
         return "|"
     else:
@@ -132,14 +152,17 @@ music = ["Classicals.de - Dvorak - Twilight Way - Poetic Tone Pictures, Op. 85, 
 # Menu Music
 def menu_music():
 
-    # Change music sequence
-    pygame.mixer.music.fadeout(500)
-    pygame.mixer.music.unload()
+    ''' The menu music that players hear initially joining the game'''
+
     pygame.mixer.music.load(os.path.join("dating_music", music[0]))
     pygame.mixer.music.play(-1, fade_ms=500)
 
 # Default music
 def normal_music():
+
+    ''' The background music, based on the player's choice of datable target, that'll play 
+        during a majority of the game. '''
+
     pygame.mixer.music.fadeout(500)
     pygame.mixer.music.unload()
     pygame.mixer.music.load(os.path.join("dating_music", music[1]))
@@ -148,6 +171,10 @@ def normal_music():
 
 # Love Overlay Music
 def love_music():
+
+    ''' Background music that plays based on a trigger in the main game loop 
+        (Used for "romantic scenes") '''
+
     pygame.mixer.music.fadeout(500)
     pygame.mixer.music.unload()
     pygame.mixer.music.load(os.path.join("dating_music", music[2]))
@@ -163,18 +190,19 @@ def main():
     # Love Overlay variables
     loveTrigger = None # Determines if love overlay is on
     loveTriggerList = ["love"] # To make this easier on coders, trigger words only gonna be from chat/claude
-    initialLoveTime = 0
-    finalLoveTime = 0
-    loveTime = 0
+    initialLoveTime = 0 # This is used to record the time at which the trigger world is triggered
+    finalLoveTime = 0 # This is used to record the current time to ensure fade happens smoothly
+    loveTime = 0 # This the difference between finalLoveTime and initialLoveTime
 
     # Text Box Stuff
-    pygame.key.set_repeat(400, 35)
+    pygame.key.set_repeat(400, 35) # Allows players to hold a key to "spam" an output
 
-    active = False
+    active = False # Determines if players are typing
     text_box = pygame.Rect(55, 455, 447, 30)
     user_ip = ''
     stored_user_ip = ''
 
+    # Variables for function blink()
     global blink_val
     blink_val = False
     last_blink = pygame.time.get_ticks()
@@ -182,7 +210,7 @@ def main():
     # Music Related Stuff    
     pygame.mixer.music.set_volume(0.3)
 
-    # Calling Music
+    # Calling Menu Music
     menu_music()
 
     # Running the game
@@ -192,14 +220,16 @@ def main():
         global mouse_pos
         mouse_pos = pygame.mouse.get_pos()
 
+        # Time
         current_time = pygame.time.get_ticks()
+
         # Bg
         choose_Chat, choose_Claude = backgroud_img(choice)
+
         # Mute button (invisible)
         mute_button = switchMute(choice)
 
-        # Button collision
-
+        # Button collision code
 
         button = [mute_button, choose_Chat, choose_Claude]
         is_hovering = any(btn.collidepoint(mouse_pos) for btn in button)
@@ -211,31 +241,24 @@ def main():
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-
+        
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: # QUIT GAME
                 return
-
-            # Button Clickin'
+            
             if event.type == pygame.MOUSEBUTTONDOWN:
+                # Mouse Inputs for the menu
                 if choice == None:
-
                     if choose_Chat.collidepoint(event.pos):
                         choice = True
-                        
-                        # BG Music
                         music[1] = "ChatBGMusic.mp3"
                         normal_music()
-
                         dialogue = chatLines # Assigning Lines
 
                     elif choose_Claude.collidepoint(event.pos):
                         choice = False  
-
-                        # BG Music
                         music[1] = "ClaudeBGMusic.mp3" 
                         normal_music()
-
                         dialogue = claudeLines # Assigning Lines
 
                 if event.button == 1 and choice != None:
@@ -259,7 +282,7 @@ def main():
                     if event.key == pygame.K_ESCAPE:
                         return
 
-                    # Text Box 
+                    # Allow input to entered into the text box
                     if active and choice != None:
                         txt_width = font.get_rect(user_ip).width
 
@@ -269,7 +292,6 @@ def main():
                         elif event.key == pygame.K_RETURN:
                             stored_user_ip = user_ip
                             user_ip = ""
-                            print("output:",stored_user_ip)
 
                         elif txt_width <= text_box.width:
                             char = event.unicode
@@ -285,11 +307,11 @@ def main():
 
         cursor = blink(blink_val) if active else ""
 
-        # "Drawing" printed stuff
+        # "Drawing" the player's typed text
         font.origin = True
         font.render_to(screen, (text_box.x + 5, text_box.y + 17), user_ip + cursor, "black")
 
-        # Fading Love OverLay (Definitely needs to be cleaned up)
+        # Fading Love OverLay Logic (Definitely needs to be cleaned up)
         if loveTrigger == None:
             if stored_user_ip in loveTriggerList:
                 loveTrigger = True
@@ -297,7 +319,7 @@ def main():
                 love_music()
 
         else:
-            if loveTrigger == True and stored_user_ip == "stop":
+            if loveTrigger == True and stored_user_ip == "stop": # "stop" is a placeholder that'll be replaced with another list of trigger words
                 loveTrigger = False
                 initialLoveTime = current_time
             elif loveTrigger == True:
@@ -324,14 +346,15 @@ if __name__ == "__main__":
     # Set Font to Times New Roman
     font = pygame.freetype.SysFont("timesnewroman", 13)
 
-    # Ze screen
+    # The screen
     screen = pygame.display.set_mode((542, 512))
 
-    # Background
+    # Background images
     Standard_Menu = pygame.image.load(os.path.join("dating_images", "Standard_Menu.png"))
     chat_logo = pygame.image.load(os.path.join("dating_images", "Chat_logo.png")).convert_alpha()
     claude_logo = pygame.image.load(os.path.join("dating_images", "Claude_logo.png")).convert_alpha()
 
+    # Create tuple with randomized variables
     whimsical_tuple = dynamic_menu()
     whimsical_font = pygame.freetype.SysFont(whimsical_tuple[3], 30)
 
