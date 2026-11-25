@@ -1,0 +1,83 @@
+GREETING START
+
+00 Hello A0
+00 Hi! B0
+
+A0 Hello C0
+C0 How are you? A1
+C0 Hey. B1
+
+B0 Hi! D0
+D0 Woah, exclamation marks A2
+D0 Hey B1
+
+A1 Good! C1
+C1 Niceee A2
+C1 Good to hear B2
+
+B1 empty CONTINUE
+
+A2 Yup! D1
+D1 Let's end this A3
+D1 :) B2
+
+A3 empty BREAK
+B2 empty CONTINUE
+
+GREETING END
+
+INTERACTION START
+
+00 Hello A0
+00 Hi! B0
+
+A0 Hello C0
+C0 How are you? A1
+C0 Hey. B1
+
+B0 Hi! D0
+D0 Woah, exclamation marks A2
+D0 Hey B1
+
+A1 Good! C1
+C1 Niceee A2
+C1 Good to hear B2
+
+B1 empty BREAK
+
+A2 Yup! D1
+D1 Let's end this A3
+D1 :) B2
+
+A3 empty BREAK
+B2 empty CONTINUE
+
+INTERACTION END
+
+SPECIAL START
+
+00 Hello A0
+00 Hi! B0
+
+A0 Hello C0
+C0 How are you? A1
+C0 Hey. B1
+
+B0 Hi! D0
+D0 Woah, exclamation marks A2
+D0 Hey B1
+
+A1 Good! C1
+C1 Niceee A2
+C1 Good to hear B2
+
+B1 empty BREAK
+
+A2 Yup! D1
+D1 Let's end this A3
+D1 :) B2
+
+A3 empty BREAK
+B2 empty CONTINUE
+
+SPECIAL END
