@@ -244,6 +244,7 @@ def main():
     # Love Overlay variables
     loveTrigger = None # Determines if love overlay is on
     loveTriggerList = ["love"] # To make this easier on coders, trigger words only gonna be from chat/claude
+    antiloveTriggerList = ["stop"]
     initialLoveTime = 0 # This is used to record the time at which the trigger world is triggered
     finalLoveTime = 0 # This is used to record the current time to ensure fade happens smoothly
     loveTime = 0 # This the difference between finalLoveTime and initialLoveTime
@@ -373,7 +374,7 @@ def main():
                 love_music()
 
         else:
-            if loveTrigger == True and stored_user_ip == "stop": # "stop" is a placeholder that'll be replaced with another list of trigger words
+            if loveTrigger == True and stored_user_ip in antiloveTriggerList:
                 loveTrigger = False
                 initialLoveTime = current_time
             elif loveTrigger == True:
