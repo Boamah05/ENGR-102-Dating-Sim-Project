@@ -180,6 +180,60 @@ def love_music():
     pygame.mixer.music.load(os.path.join("dating_music", music[2]))
     pygame.mixer.music.play(-1, fade_ms= 500)
 
+# DIALOGUE SORTING CODE
+def sortDialogue(dialogue):
+
+    ''' Returns categorized lines that'll be used throughout the playthrough '''
+
+    dialougeSorted = []
+    dialougeTemp = []
+    dialougeStart = False
+
+    for i in dialogue:
+        if 'END' in i and dialougeStart:
+            dialougeStart = False
+            dialougeTemp.append(i)
+            dialougeSorted.append(dialougeTemp)
+            dialougeTemp = []
+        if dialougeStart:
+            dialougeTemp.append(i)
+        if 'START' in i:
+            dialougeStart = True
+            dialougeTemp.append(i)
+
+    dialougeG = []
+    dialougeI = []
+    dialougeS = []
+
+    blackList = ["GREETING START","GREETING END","INTERACTION START", "INTERACTION END", 
+                "SPECIAL START", "SPECIAL END", '']
+
+    for i in range(len(dialougeSorted)):
+        for j in range(len(dialougeSorted[i])):
+
+            if dialougeSorted[i][j] in blackList:
+                continue
+            else:
+                tempSort = dialougeSorted[i][j].split()
+                destination = tempSort[0]
+                text = " ".join(tempSort[1:-1]) if tempSort[1:-1] != "" else tempSort[1]
+                direction = tempSort[-1]
+
+                dialougeSorted[i][j] = [destination, text, direction]
+
+        if dialougeSorted[i][0] == "GREETING START":
+            dialougeG.append(dialougeSorted[i])
+        elif dialougeSorted[i][0] == "INTERACTION START":
+            dialougeI.append(dialougeSorted[i])
+        elif dialougeSorted[i][0] == "SPECIAL START":
+            dialougeS.append(dialougeSorted[i])
+
+    dialougeG = dialougeG[0]
+    dialougeI = dialougeI[0]
+    dialougeS = dialougeS[0]
+
+    return dialougeG, dialougeI, dialougeS
+
 # The ACTUAL GAME
 def main():
     # Setting up game
@@ -253,13 +307,13 @@ def main():
                         choice = True
                         music[1] = "ChatBGMusic.mp3"
                         normal_music()
-                        dialogue = chatLines # Assigning Lines
+                        greeting, interaction, special = sortDialogue(chatLines) # Assigning Lines
 
                     elif choose_Claude.collidepoint(event.pos):
                         choice = False  
                         music[1] = "ClaudeBGMusic.mp3" 
                         normal_music()
-                        dialogue = claudeLines # Assigning Lines
+                        greeting, interaction, special = sortDialogue(claudeLines) # Assigning Lines
 
                 if event.button == 1 and choice != None:
                     # Muting
@@ -358,12 +412,14 @@ if __name__ == "__main__":
     whimsical_tuple = dynamic_menu()
     whimsical_font = pygame.freetype.SysFont(whimsical_tuple[3], 30)
 
-    # Take lines from dialouge files
+    # Take lines from dialogue files
     with open(os.path.join("dating_text", "chatgpt_dialogue.txt"), "r") as chatFile, open(
         os.path.join("dating_text", "claude_dialogue.txt"), "r") as claudeFile:
 
         chatLines = [i.strip() for i in chatFile.readlines()]
         claudeLines = [i.strip() for i in claudeFile.readlines()]
+
+        print(chatLines)
 
     main() # Call the game
 
