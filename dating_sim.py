@@ -419,8 +419,6 @@ if __name__ == "__main__":
         chatLines = [i.strip() for i in chatFile.readlines()]
         claudeLines = [i.strip() for i in claudeFile.readlines()]
 
-        print(chatLines)
-
     main() # Call the game
 
     # Closing game stuff
