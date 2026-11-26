@@ -223,11 +223,102 @@ def sortDialogue(dialogue):
     # Return dictionaries in tuple
     return (sortedDict.get("GREETING", {}), sortedDict.get("INTERACTION", {}), sortedDict.get("SPECIAL", {}))
 
+def progress_tracker():
+
+    ''' Returns a dictionary that'll check the current progress of the game
+        (Currently defaulting to Initial Greeting)
+
+        "event_index" - index of the current event type... 0 GREETING, 1 INTERACTION, 2 SPECIAL
+        "location" - The keys in the dialogue dictionary
+        "wating_for_choice" - on and off boolean to allow continuous looping without slowing game
+        "active" - Boolean checking if active
+        "last_choice_text" - stores the player's last choice
+        "last_choice_boxes" - stores count of last choice's boxes '''
+
+    return {"event_index" : 0,"location": "00", "waiting_for_choice": False, "active": True, "last_choice_text": "", "last_choice_count": 2}
+
+
+def nextDialogue(event_type, progress, storyline, input = None):
+
+    ''' This function uses the "destination" to reach the "location" 
+        Primary purpose is to update the progress dictionary to be used in 
+        other functions '''
+
+    event_names = ["GREETING", "INTERACTION", "SPECIAL"]
+    if not progress["active"]:
+        return
+
+    for unusedItem in range(100): # Prevents infinite loop
+        # Ends loop if program detects all events have occurred
+        event_index = progress["event_index"]
+        if event_index >= len(event_names):
+            progress["active"] = False
+            return
+
+
+        event = event_type[event_index]
+        event_name = event_names[event_index]
+
+        choices = event.get(progress["location"]) # Gets the text and destination from dictionary
+
+
+        if len(choices) > 1: # Filters out reponses
+            if not progress["waiting_for_choice"]:
+                progress["waiting_for_choice"] = True # Allows for loop to continue without function "pausing game"
+                return
+            if input == None:
+                return
+
+            answer = str(input).strip() # In case the players try to pull a fast one
+
+            # Currently checks if it matches 100% (Will be changed to accept 70+%)
+            matchCheck = [choice for choice in choices if choice[0].casefold() == answer.casefold()]
+
+            if len(matchCheck) != 1:
+                print(f"Wrote that kinda wrong bruv: {answer}")
+                return
+
+            # Setting up the text and its destination
+            text, destination = matchCheck[0]
+            progress["last_choice_text"] = text
+            progress["last_choice_boxes"] = len(choices)
+
+            if text:
+                storyline.append(("player", text))
+            progress["waiting_for_choice"] = False
+
+        else: # Responses
+            text, destination = choices[0]
+            if text:
+                storyline.append(("response", text))
+
+        if destination == "BREAK": # it... uh... breaks
+            storyline.append(("response", "BREAK"))
+            progress["active"] = False
+            progress["waiting_for_choice"] = False
+            return
+        
+        elif destination == "CONTINUE": # Reset dictionary and go to next event
+            storyline.append(("response", "CONTINUE"))
+            progress["event_index"] += 1
+            progress["location"] = "00"
+            progress["waiting_for_choice"] = False
+            if progress["event_index"] >= len(event_names):
+                progress["active"] = False
+                return
+        else:
+            progress["active"] = False
+            return
+
+        input = None
 
 # The ACTUAL GAME
 def main():
     # Setting up game
     pygame.display.set_caption("AI-shiteru!!")
+    event_type = ({},{},{})
+    progress = progress_tracker()
+    storyline = []
 
     choice = None # GPT - True // Claude - False
 
@@ -298,13 +389,23 @@ def main():
                         choice = True
                         music[1] = "ChatBGMusic.mp3"
                         normal_music()
-                        dialogue = sortDialogue(chatLines) # Assigning Lines
+
+                        # Dialogue-related 
+                        event_type = sortDialogue(claudeLines) # Assigning Lines
+                        progress = progress_tracker()
+                        storyline = [] # Stores player's choices and its responses
+                        nextDialogue(event_type, progress, storyline)
 
                     elif choose_Claude.collidepoint(event.pos):
                         choice = False  
                         music[1] = "ClaudeBGMusic.mp3" 
                         normal_music()
-                        dialogue = sortDialogue(claudeLines) # Assigning Lines
+
+                        # Dialogue-related 
+                        event_type = sortDialogue(claudeLines) # Assigning Lines
+                        progress = progress_tracker()
+                        storyline = [] # Stores player's choices and its responses
+                        nextDialogue(event_type, progress, storyline)
 
                 if event.button == 1 and choice != None:
                     # Muting
