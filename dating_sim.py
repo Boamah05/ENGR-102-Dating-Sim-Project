@@ -206,7 +206,7 @@ def sortDialogue(dialogue):
         elif line.endswith("END"):
             section_name = None # Reset
             continue
-        elif section_name is None:
+        elif section_name == None:
             continue
 
         # Lines that are "dialogue" are sorted into a dictionary
@@ -299,7 +299,7 @@ def nextDialogue(event_type, progress, storyline, input = None):
             progress["waiting_for_choice"] = False
             return
         
-        elif destination == "CONTINUE": # Reset dictionary and go to next event
+        elif destination == "CONTINUE": # "Reset" dictionary and go to next event
             storyline.append(("response", "CONTINUE"))
             progress["event_index"] += 1
             progress["location"] = "00"
@@ -378,7 +378,8 @@ def main():
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        
+        entered_user_ip = None # Similar to stored, except resets per loop
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT: # QUIT GAME
                 return
@@ -437,13 +438,17 @@ def main():
                             user_ip = user_ip[:-1]
                             
                         elif event.key == pygame.K_RETURN:
-                            stored_user_ip = user_ip
-                            user_ip = ""
+                            stored_user_ip = user_ip.strip()
+                            entered_user_ip = user_ip.strip()
 
+                            user_ip = ""
                         elif txt_width <= text_box.width:
                             char = event.unicode
                             if char and char.isprintable():
                                 user_ip += event.unicode
+
+        if entered_user_ip != None and progress["active"]:
+            nextDialogue(event_type, progress, storyline, entered_user_ip)
 
         # Blinking Cursor Logic
         blink_time = pygame.time.get_ticks()
