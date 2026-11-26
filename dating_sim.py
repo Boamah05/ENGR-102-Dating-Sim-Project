@@ -183,56 +183,46 @@ def love_music():
 # DIALOGUE SORTING CODE
 def sortDialogue(dialogue):
 
-    ''' Returns categorized lines that'll be used throughout the playthrough '''
+    ''' Returns categorized lines that'll be used throughout the playthrough into usuable dictionary
+        Format of the dictionary is {location: [(prompt/response, destination), ...]} 
+        
+        Location = Represents where the text is stored
+        Prompt/Response = Represents the words rendered on the screen and choices for the player to make
+        Destination = Based on the Prompt/Response rendered, go to the next location'''
 
-    dialougeSorted = []
-    dialougeTemp = []
-    dialougeStart = False
+    sortedDict = {}
+    section_name = None # Set to None until START is found to create key
 
-    for i in dialogue:
-        if 'END' in i and dialougeStart:
-            dialougeStart = False
-            dialougeTemp.append(i)
-            dialougeSorted.append(dialougeTemp)
-            dialougeTemp = []
-        if dialougeStart:
-            dialougeTemp.append(i)
-        if 'START' in i:
-            dialougeStart = True
-            dialougeTemp.append(i)
+    for lineEntire in dialogue:
+        line = lineEntire.strip()
 
-    dialougeG = []
-    dialougeI = []
-    dialougeS = []
+        # Finding Starts and Ends || Continues to skip bottom half of fuction
+        if not line or line == "Empty":
+            continue
+        elif line.endswith("START"):
+            section_name = line[:-6].strip().upper() # Sort GREETING, INTERACTION, and SPECIAL events
+            sortedDict[section_name]
+            continue
+        elif line.endswith("END"):
+            section_name = None # Reset
+            continue
+        elif section_name is None:
+            continue
 
-    blackList = ["GREETING START","GREETING END","INTERACTION START", "INTERACTION END", 
-                "SPECIAL START", "SPECIAL END", '']
+        # Lines that are "dialogue" are sorted into a dictionary
+        lineListed = line.split()
 
-    for i in range(len(dialougeSorted)):
-        for j in range(len(dialougeSorted[i])):
+        location = lineListed[0] 
+        text = " ".join(lineListed[1:-1])
+        destination = lineListed[-1]
+        if text == "empty":
+            text = ""
 
-            if dialougeSorted[i][j] in blackList:
-                continue
-            else:
-                tempSort = dialougeSorted[i][j].split()
-                destination = tempSort[0]
-                text = " ".join(tempSort[1:-1]) if tempSort[1:-1] != "" else tempSort[1]
-                direction = tempSort[-1]
+        sortedDict[section_name].setdefault(location, []).append((text, destination)) # sorted
 
-                dialougeSorted[i][j] = [destination, text, direction]
+    # Return dictionaries in tuple
+    return (sortedDict.get("GREETING", {}), sortedDict.get("INTERACTION", {}), sortedDict.get("SPECIAL", {}))
 
-        if dialougeSorted[i][0] == "GREETING START":
-            dialougeG.append(dialougeSorted[i])
-        elif dialougeSorted[i][0] == "INTERACTION START":
-            dialougeI.append(dialougeSorted[i])
-        elif dialougeSorted[i][0] == "SPECIAL START":
-            dialougeS.append(dialougeSorted[i])
-
-    dialougeG = dialougeG[0]
-    dialougeI = dialougeI[0]
-    dialougeS = dialougeS[0]
-
-    return dialougeG, dialougeI, dialougeS
 
 # The ACTUAL GAME
 def main():
@@ -308,13 +298,13 @@ def main():
                         choice = True
                         music[1] = "ChatBGMusic.mp3"
                         normal_music()
-                        greeting, interaction, special = sortDialogue(chatLines) # Assigning Lines
+                        dialogue = sortDialogue(chatLines) # Assigning Lines
 
                     elif choose_Claude.collidepoint(event.pos):
                         choice = False  
                         music[1] = "ClaudeBGMusic.mp3" 
                         normal_music()
-                        greeting, interaction, special = sortDialogue(claudeLines) # Assigning Lines
+                        dialogue = sortDialogue(claudeLines) # Assigning Lines
 
                 if event.button == 1 and choice != None:
                     # Muting
