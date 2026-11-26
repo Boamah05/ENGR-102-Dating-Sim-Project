@@ -201,7 +201,7 @@ def sortDialogue(dialogue):
             continue
         elif line.endswith("START"):
             section_name = line[:-6].strip().upper() # Sort GREETING, INTERACTION, and SPECIAL events
-            sortedDict[section_name]
+            sortedDict[section_name] = {}
             continue
         elif line.endswith("END"):
             section_name = None # Reset
