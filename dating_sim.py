@@ -292,6 +292,7 @@ def nextDialogue(event_type, progress, storyline, input = None):
             if text:
                 storyline.append(("response", text))
 
+        # Handling BREAK and CONTINUE
         if destination == "BREAK": # it... uh... breaks
             storyline.append(("response", "BREAK"))
             progress["active"] = False
