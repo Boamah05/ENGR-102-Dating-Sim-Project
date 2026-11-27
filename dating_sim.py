@@ -1,11 +1,14 @@
 import pygame, pygame.freetype, random, sys, os
 
 # VISUAL BG RELATED CODE
-def background_img(val):
+def background_img(val, endCheck):
+
+    mouse_pos = pygame.mouse.get_pos()
 
     ''' All lines in conditional val == None is the menu screen 
         All lines in else continuously draws the Background where the value of val determines if 
-        ChatGPT's or Claude's objects get drawn.'''
+        ChatGPT's or Claude's objects get drawn.
+        endCheck determines if good or bad ending activated'''
     
     if val == None:
         choose_Chat,choose_Claude = pygame.Rect(50, 200, 200, 250), pygame.Rect(300, 200, 200, 250)
@@ -30,8 +33,6 @@ def background_img(val):
         # Boxes for or and welcome message for centering
         or_block = pygame.Rect(250, 300, 50, 50)
         big_text_block = pygame.Rect(53, 55, 442, 100)
-
-        font.origin = True
 
         # Manually rendering text to screen for each box (Should Clean up if possible)
         whims_box = whimsical_font.get_rect("or")
@@ -58,13 +59,31 @@ def background_img(val):
         whimsical_font.render_to(screen, whims_box, whimsical_tuple[0] + blink(blink_val), "black")
 
     else:
-        choose_Chat, choose_Claude = pygame.Rect(1000, 1000, 1, 1), pygame.Rect(1000, 1000, 1, 1)
-        screen.blit(Standard_Menu, (0,0))
+        choose_Chat, choose_Claude = pygame.Rect(1000, 1000, 1, 1), pygame.Rect(1000, 1000, 1, 1) # makin em exist somewhere else
+        endingx = 10
+        endingy = 480
 
-        if val == True: # ChatGpt Route
-            screen.blit(chat_logo, (8, 10))
-        elif val == False: # Claude Route
-            screen.blit(claude_logo, (8, 10))
+        if endCheck == None:
+            screen.blit(Standard_Menu, (0,0))
+            if val == True: # ChatGpt Route
+                screen.blit(chat_logo, (8, 10))
+            elif val == False: # Claude Route
+                screen.blit(claude_logo, (8, 10))
+        else:
+            if endCheck == True: # Good Ending
+                screen.fill("white")
+                ending_color = "black"
+                ending_text = "GOOD ENDING SCREEN WIP"
+            elif endCheck == False: # Bad Ending
+                screen.fill("black")
+                ending_color = "white"
+                ending_text = "BAD ENDING SCREEN WIP"
+
+            font.size = 25
+            font.render_to(screen, (endingx, endingy), ending_text, ending_color)
+            font.render_to(screen, (endingx, endingy + 20), "THANKS FOR PLAYING", ending_color)
+
+
     return choose_Chat, choose_Claude
 
 def dynamic_menu():
@@ -98,25 +117,19 @@ def loveOverlay(active, time):
     ''' Whenever the function is called, fade the hearts filter for 2.5 seconds.
         Incrementally fades it every loop to ensure the program isn't "slowed" down.'''
 
-    loveImage = pygame.image.load(os.path.join("dating_images","hearts_overlay.png"))
-
-    percent = time/2500
+    percent = max(0.0, min(time / 2500, 1.0))
 
     if active:
-        loveImage.set_alpha(50 * min(percent, 1.0))
+        love_image.set_alpha(round(50 * percent))
     elif not active:
-        loveImage.set_alpha(50 - (50 * min(percent, 1.0)))
+        love_image.set_alpha(round(50 * (1.0 - percent)))
 
-    screen.blit(loveImage, (0,0))
+    screen.blit(love_image, (0,0))
 
 def switchMute(val):
 
     ''' Based on the current status of the music player, this functions draws the object 
         corresponding (speaker with X for paused || speaker with sound for unpaused) '''
-
-    # Bring images from file
-    unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png")).convert_alpha()
-    mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png")).convert_alpha()
     
     if val != None:
         # Unmute    
@@ -210,7 +223,22 @@ def bubble_new_line(message, max_width, max_lines = None, text_font = None):
         else:
             if current:
                 rendered.append(current)
-            current = word
+                current = ""
+
+            if text_font.get_rect(word).width <= max_width:
+                current = word
+            else:
+                # Break long unspaced words into pieces that fit the line.
+                piece = ""
+                for char in word:
+                    candidate = piece + char
+                    if text_font.get_rect(candidate).width <= max_width:
+                        piece = candidate
+                    else:
+                        if piece:
+                            rendered.append(piece)
+                        piece = char
+                current = piece
     if current:
         rendered.append(current)
 
@@ -219,6 +247,8 @@ def bubble_new_line(message, max_width, max_lines = None, text_font = None):
 def draw_bubbleBox(storyline, dialogue, progress, input, cursor, text_box, playerChoice):
 
     ''' Draw the target's responses, player's inputs, and choices'''
+
+    mouse_pos = pygame.mouse.get_pos()
 
     # Rendering text set up
     font.origin = False
@@ -241,6 +271,8 @@ def draw_bubbleBox(storyline, dialogue, progress, input, cursor, text_box, playe
     bubble_bottom = choice_button_area(choiceBox, text_box).top - 10
 
     for i in reversed(storyline): # Uses most recent -> old (Format of storyline is (speaker, message) btw)
+        if i[0] == "ending":
+            continue
         lines = bubble_new_line(i[1], message_width)
         line_rects = [font.get_rect(line) for line in lines]
         line_widths = [rect.width for rect in line_rects]
@@ -317,15 +349,16 @@ def draw_bubbleBox(storyline, dialogue, progress, input, cursor, text_box, playe
         choice_font.render_to(screen, (end_x, end_y), end_text, "black")
 
     # Player text box
+    text_x = text_box.x + 5
+    text_y = text_box.centery + (font.get_sized_ascender() + font.get_sized_descender()) // 2 # PLEASE MAKE THE a'S STOP JUMPING :(((((
+    font.origin = True
+
     if input:
-        typed_text = input + cursor
-        typed_height = font.get_rect("Agjpqy").height
-        typed_y = text_box.y + (text_box.height - typed_height) // 2
-        font.render_to(screen, (text_box.x + 5, typed_y), typed_text, "black")
-    elif cursor:
-        cursor_height = font.get_rect("Agjpqy").height
-        cursor_y = text_box.y + (text_box.height - cursor_height) // 2
-        font.render_to(screen, (text_box.x + 5, cursor_y), cursor, "black")
+        font.render_to(screen, (text_x, text_y), input, "black")
+
+    if cursor:
+        cursor_x = text_x + font.get_rect(input).width
+        font.render_to(screen, (cursor_x, text_y), cursor, "black")
 
 
 # MUSIC RELATED CODE
@@ -334,7 +367,8 @@ def draw_bubbleBox(storyline, dialogue, progress, input, cursor, text_box, playe
 music = ["Classicals.de - Dvorak - Twilight Way - Poetic Tone Pictures, Op. 85, No. 1.mp3",
          "BlankCuzThisGunnaBeMusicForOurLilAIs", 
          "LoveBGMusic.mp3",
-         "BadBGMusic.mp3"]
+         "BadBGMusic.mp3",
+         "GoodBGMusic.mp3"]
 
 # Menu Music
 def menu_music():
@@ -373,6 +407,15 @@ def love_music():
     global songCheck
     songCheck = 1
 
+def good_music():
+
+    ''' Background music that plays during the good ending '''
+
+    pygame.mixer.music.fadeout(500)
+    pygame.mixer.music.unload()
+    pygame.mixer.music.load(os.path.join("dating_music", music[4]))
+    pygame.mixer.music.play(-1, fade_ms = 400)
+
 def bad_music():
 
     ''' Background music that plays during the bad ending'''
@@ -382,7 +425,7 @@ def bad_music():
     pygame.mixer.music.load(os.path.join("dating_music", music[3]))
     pygame.mixer.music.play(-1, fade_ms = 400)
 
-# Lil' Easter Eggs
+# Lil' Easter Egg
 def kpop(target, currentMusic):
 
     ''' Changes all general songs to KPOP '''
@@ -399,7 +442,7 @@ def kpop(target, currentMusic):
     music[3] = "BadBGMusicKpop.mp3"
 
     # Good Ending Song
-    # music[4] = "Some kind of good song"
+    music[4] = "GoodBGMusicKpop.mp3"
 
     # Replaces song currently playing
     if currentMusic == 0:
@@ -462,7 +505,6 @@ def progress_tracker():
 
 def nextDialogue(dialogue, progress, storyline, input = None):
 
-
     ''' This function uses the "destination" to reach the "location" 
         Primary purpose is to update the progress dictionary to be used in 
         other functions '''
@@ -481,13 +523,17 @@ def nextDialogue(dialogue, progress, storyline, input = None):
         progress["pending_destination"] = None
 
         # Ensure destination leads to an actual locaation
-        if destination == "BREAK":
-            storyline.append(("response", "BREAK"))
+        if destination == "GOODEND":
+            storyline.append(("ending", "GOODEND"))
             progress["active"] = False
+            good_music()
+
             return
-        elif destination == "CONTINUE":
-            storyline.append(("response", "BREAK"))
+        elif destination == "BADEND":
+            storyline.append(("ending", "BADEND"))
             progress["active"] = False
+            bad_music()
+
             return
         else:
             progress["location"] = destination
@@ -529,28 +575,44 @@ def nextDialogue(dialogue, progress, storyline, input = None):
             text, destination = choices[0]
             if text:
                 storyline.append(("response", text))
-
-        # Handling BREAK and CONTINUE
-        if destination == "BREAK": # it... uh... breaks
-            storyline.append(("response", "BREAK"))
-            progress["active"] = False
-            progress["waiting_for_choice"] = False
-
-            global end
-            end = "THE END"
-
-            bad_music()
-            return
-        
-        elif destination == "CONTINUE": # Same as BREAK for now
-            storyline.append(("response", "CONTINUE"))
-            progress["waiting_for_choice"] = False
-            progress["active"] = False
-            return
-        else:
             progress["location"] = destination
 
+
+        if destination == "GOODEND":
+            storyline.append(("ending", "GOODEND"))
+            progress["active"] = False
+            progress["waiting_for_choice"] = False
+            good_music()
+
+            return
+        
+        # Handling BREAK and CONTINUE
+
+        if destination == "BADEND":
+            storyline.append(("ending", "BADEND"))
+            progress["active"] = False
+            progress["waiting_for_choice"] = False
+            bad_music()
+
+            return
+        
+        progress["location"] = destination
+
         input = None
+
+def yaDeadYet(playerPath):
+
+    ''' Checks if the which ending has been reached to return into background_img() '''
+
+    if len(playerPath) >= 1:
+        analyzed = playerPath[-1][-1]
+
+        if analyzed == "GOODEND":
+            return True
+        elif analyzed == "BADEND":
+            return False
+
+    return None
 
 # The ACTUAL GAME
 def main():
@@ -560,7 +622,6 @@ def main():
     dialogue = {}
     progress = progress_tracker()
     storyline = []
-    end = None
 
     choice = None # GPT - True // Claude - False
 
@@ -576,7 +637,7 @@ def main():
     pygame.key.set_repeat(400, 35) # Allows players to hold a key to "spam" an output
 
     active = False # Determines if players are typing
-    text_box = pygame.Rect(55, 455, 447, 30)
+    text_box = pygame.Rect(60, 455, 442, 30)
     user_ip = ''
     stored_user_ip = ''
     playerChoice = ''
@@ -596,15 +657,26 @@ def main():
     # Running the game
     while True:
 
+        
+        # Bg
+        ending = yaDeadYet(storyline)
+        choose_Chat, choose_Claude = background_img(choice, ending)
+
+        if ending is not None:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return
+            pygame.display.update()
+            clock.tick(60)
+            continue
+
         # Position of mouse
-        global mouse_pos
         mouse_pos = pygame.mouse.get_pos()
 
         # Time
         current_time = pygame.time.get_ticks()
-
-        # Bg
-        choose_Chat, choose_Claude = background_img(choice)
 
         # Mute button (invisible)
         mute_button = switchMute(choice)
@@ -693,8 +765,6 @@ def main():
 
                     # Allow input to entered into the text box
                     if active and choice != None:
-                        txt_width = font.get_rect(user_ip).width
-
                         if event.key == pygame.K_BACKSPACE:
                             user_ip = user_ip[:-1]
                             
@@ -706,10 +776,12 @@ def main():
                             playerChoice = ""
                             active = False
 
-                        elif txt_width <= text_box.width:
+                        else:
                             char = event.unicode
-                            if char and char.isprintable():
-                                user_ip += event.unicode
+                            candidate = user_ip + char
+                            if (char and char.isprintable()
+                                    and font.get_rect(candidate).width <= text_box.width - 10):
+                                user_ip = candidate
 
         if entered_user_ip != None and progress["active"]:
             nextDialogue(dialogue, progress, storyline, entered_user_ip)
@@ -728,7 +800,6 @@ def main():
         cursor = blink(blink_val) if active else ""
 
         # "Drawing" the player's typed text
-        font.origin = True
         # Fading Love OverLay Logic (Definitely needs to be cleaned up)
         if loveTrigger == None:
             if stored_user_ip in loveTriggerList:
@@ -780,6 +851,11 @@ if __name__ == "__main__":
     Standard_Menu = pygame.image.load(os.path.join("dating_images", "Standard_Menu.png"))
     chat_logo = pygame.image.load(os.path.join("dating_images", "Chat_logo.png")).convert_alpha()
     claude_logo = pygame.image.load(os.path.join("dating_images", "Claude_logo.png")).convert_alpha()
+
+    # Bring images from file
+    unmute_image = pygame.image.load(os.path.join("dating_images", "Unmuted_Button.png")).convert_alpha()
+    mute_image = pygame.image.load(os.path.join("dating_images", "Muted_Button.png")).convert_alpha()
+    love_image = pygame.image.load(os.path.join("dating_images", "hearts_overlay.png")).convert_alpha()
 
     # Create tuple with randomized variables
     whimsical_tuple = dynamic_menu()
